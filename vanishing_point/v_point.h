@@ -10,7 +10,7 @@
 using namespace std;
 using namespace cv;
 
-Mat vanishing_point(Mat frame);
+Mat vanishing_point(Mat img, Mat img2);
 Mat canny(Mat frame);
 
 #endif

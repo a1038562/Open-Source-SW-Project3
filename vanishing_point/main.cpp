@@ -26,14 +26,15 @@ int main()
 			cout << endl << "이미지가 존재하지 않습니다." << endl << endl;
 		}
 
-		canny_img = canny(img); //이미지 canny edge 검출
-		line_img = vanishing_point(canny_img); //소실점을 찾는 함수 실행 및 결과 반환
-		addWeighted(img, 0.8, line_img, 1, 0, result); //이미지 합하기
-		imshow("result", result); //결과 출력
+		if (!img.empty()) {
+			canny_img = canny(img); //이미지 canny edge 검출
+			line_img = vanishing_point(canny_img, img); //소실점을 찾는 함수 실행 및 결과 반환
+			addWeighted(img, 0.8, line_img, 1, 0, result); //이미지 합하기
+			imshow("result", result); //결과 출력
 
-		if (waitKey(0) == 27) //ESC키 입력 시 종료
-			break;
-
+			if (waitKey(0) == 27) //ESC키 입력 시 종료
+				break;
+		}
 	}
 	img.release(); //객체 해제
 	destroyAllWindows(); //윈도우 종료

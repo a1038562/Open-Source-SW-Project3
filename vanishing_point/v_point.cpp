@@ -1,10 +1,10 @@
 #include "v_point.h"
 
-Mat vanishing_point(Mat frame)
+Mat vanishing_point(Mat img, Mat img2)
 {
 	//HoughLinesP() 함수에 사용할 변수
-	double width = frame.cols;
-	double height = frame.rows;
+	double width = img.cols;
+	double height = img.rows;
 	double rho = 1;
 	double theta = CV_PI / 180;
 	double hough_thresh = 100;
@@ -26,7 +26,9 @@ Mat vanishing_point(Mat frame)
 	double c0, c1, cov00, cov01, cov11, sumsq;
 	double c0L = 0, c1L = 0, c0R = 0, c1R = 0;
 
-	HoughLinesP(frame, lines, rho, theta, hough_thresh, min_length, max_gap); //허프변환 함수
+	HoughLinesP(img, lines, rho, theta, hough_thresh, min_length, max_gap); //허프변환 함수
+
+	Vec3b* pt; //소실점의 픽셀값
 
 
 	for (int i = 0; i < lines.size(); i++)
@@ -41,7 +43,7 @@ Mat vanishing_point(Mat frame)
 		if (dx != 0) //x의 변화량이 0이 아닐 때
 			slope = dy / dx;
 		else //x이 변화량이 0일 때
-			slope = 999.0; 
+			slope = 999.0;
 
 		if (abs(slope) > 0.5 && abs(slope) < 5) { //기울기가 조건에 맞는다면
 
@@ -58,7 +60,7 @@ Mat vanishing_point(Mat frame)
 		}
 	}
 
-	//선분 정보를 저장할 배열 동적할당
+	//기울기별 선분 정보를 저장할 배열 동적할당
 	lineLX = new double[2 * lineL.size() + 1];
 	lineLY = new double[2 * lineL.size() + 1];
 	lineRX = new double[2 * lineR.size() + 1];
@@ -80,7 +82,7 @@ Mat vanishing_point(Mat frame)
 	gsl_fit_linear(lineLX, 1, lineLY, 1, indexL, &c0, &c1, &cov00, &cov01, &cov11, &sumsq); //적절한 함수 찾기
 
 	//계수
-	c0L = c0; 
+	c0L = c0;
 	c1L = c1;
 
 	//계수를 사용하여 좌표 찾기
@@ -111,7 +113,7 @@ Mat vanishing_point(Mat frame)
 	c1R = c1;
 
 	//계수를 사용하여 좌표 찾기
-	p1R.x = (height - c0R) / c1R; 
+	p1R.x = (height - c0R) / c1R;
 	p1R.y = height;
 	p2R.x = (0 - c0R) / c1R;
 	p2R.y = 0;
@@ -119,9 +121,13 @@ Mat vanishing_point(Mat frame)
 	line(line_img, p1R, p2R, Scalar(0, 0, 255), 10); //선분 표시
 
 	//소실점을 원으로 표시
-	vp.x = abs((c0R - c0L) / (c1R - c1L)); 
+	vp.x = abs((c0R - c0L) / (c1R - c1L));
 	vp.y = c1R * vp.x + c0R;
 	circle(line_img, vp, 30, (0, 0, 255), 10);
+
+	//소실점의 픽셀값
+	pt = img2.ptr<Vec3b>(vp.x, vp.y); //포인터로 이미지 픽셀 메모리 주소 접근
+	cout << endl << endl << endl << endl << "소실점의 픽셀값 = " << *pt << endl << endl << endl << endl << endl;
 
 	//동적할당 해제
 	delete[] lineLX;
